@@ -35,6 +35,8 @@ const items = [
 export default function JourneyTimeline() {
   const sectionRef = useRef(null);
   const trackRef = useRef(null);
+  const eventsRef = useRef(null);
+  const [vertical, setVertical] = useState(false);
   const [maxScroll, setMaxScroll] = useState(0);
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState(0);
@@ -43,6 +45,16 @@ export default function JourneyTimeline() {
   // How far (in px) the track needs to travel horizontally so every card
   // is reachable. Measured from the real rendered width, so this keeps
   // working correctly no matter how many items end up in the list above.
+  // En pantallas pequeñas la trayectoria es una línea de tiempo vertical
+  // normal (sin scroll horizontal ni sticky).
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 760px)");
+    const read = () => setVertical(query.matches);
+    read();
+    query.addEventListener("change", read);
+    return () => query.removeEventListener("change", read);
+  }, []);
+
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
     const read = () => setReduced(query.matches);
@@ -64,6 +76,22 @@ export default function JourneyTimeline() {
 
   useEffect(() => {
     const update = () => {
+      if (vertical) {
+        // Vertical: cada hito se activa al entrar en la zona media de la pantalla
+        // y la línea se rellena según lo que ya has recorrido.
+        const events = eventsRef.current;
+        if (!events) return;
+        const mark = window.innerHeight * 0.7;
+        const rect = events.getBoundingClientRect();
+        setProgress(Math.min(1, Math.max(0, (mark - rect.top) / rect.height)));
+        const nodes = events.querySelectorAll(".journey-event");
+        let current = -1;
+        nodes.forEach((node, i) => {
+          if (node.getBoundingClientRect().top < mark) current = i;
+        });
+        setActive(Math.max(0, current));
+        return;
+      }
       const section = sectionRef.current;
       if (!section) return;
       const rect = section.getBoundingClientRect();
@@ -79,13 +107,16 @@ export default function JourneyTimeline() {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, [maxScroll]);
+  }, [maxScroll, vertical]);
 
   // The section is exactly "one screen + however far we need to travel"
   // tall, so scrolling through it maps 1:1 to the horizontal movement —
   // no guessed multipliers, so it can't run out of room with more items.
-  const sectionStyle = { height: `calc(100vh + ${maxScroll}px)` };
-  const translate = reduced ? 0 : -progress * maxScroll;
+  const sectionStyle = vertical ? undefined : { height: `calc(100vh + ${maxScroll}px)` };
+  const translate = reduced || vertical ? 0 : -progress * maxScroll;
+  const lineStyle = vertical
+    ? { height: `${progress * 100}%` }
+    : { width: `${Math.max(8, progress * 100)}%` };
 
   return (
     <section className="journey" id="trayectoria" ref={sectionRef} style={sectionStyle}>
@@ -93,7 +124,7 @@ export default function JourneyTimeline() {
         <div
           className="journey-track"
           ref={trackRef}
-          style={{ transform: `translateX(${translate}px)` }}
+          style={vertical ? undefined : { transform: `translateX(${translate}px)` }}
         >
           <div className="journey-intro">
             <p className="eyebrow">TRAYECTORIA</p>
@@ -103,10 +134,10 @@ export default function JourneyTimeline() {
             <p className="journey-period">2023 — 2026</p>
           </div>
 
-          <div className="journey-events">
+          <div className="journey-events" ref={eventsRef}>
             <div className="journey-line-wrap">
               <span className="journey-dot first" />
-              <span className="journey-line" style={{ width: `${Math.max(8, progress * 100)}%` }} />
+              <span className="journey-line" style={lineStyle} />
               <span className="journey-dot last" />
             </div>
 

@@ -1,11 +1,19 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import WorksWheel from "@/components/WorksWheel";
 
 // La rueda se queda igual; al lado se muestra la explicación del proyecto
 // que esté seleccionado en ese momento.
 export default function ProjectsShowcase({ projects }) {
   const [active, setActive] = useState(0);
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 760px)");
+    const read = () => setNarrow(query.matches);
+    read();
+    query.addEventListener("change", read);
+    return () => query.removeEventListener("change", read);
+  }, []);
   const onActiveChange = useCallback((i) => setActive(i), []);
   const project = projects[active] ?? projects[0];
   const pad = (n) => String(n + 1).padStart(2, "0");
@@ -16,7 +24,7 @@ export default function ProjectsShowcase({ projects }) {
         items={projects.map(({ title, link, image }) => ({ title, href: link, image }))}
         label="Mis proyectos"
         action="Abrir"
-        cardMaxW={0.5}
+        cardMaxW={narrow ? 0.84 : 0.5}
         onActiveChange={onActiveChange}
       />
 

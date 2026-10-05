@@ -142,28 +142,34 @@ export default function WorksWheel({ items, label = "Mis proyectos", action = "A
     <div className="works-wheel" ref={stageRef} tabIndex={0} role="listbox" aria-label={label}
       style={{ perspective: `${metrics.depth}px` }}
       onPointerDown={(event) => {
-        drag.current = { startY: event.clientY, lastY: event.clientY, moved: false, id: event.pointerId };
+        // En táctil el gesto es horizontal (deslizar) para no bloquear el scroll
+        // vertical de la página; con ratón se arrastra en vertical.
+        const touch = event.pointerType === "touch";
+        const at = touch ? event.clientX : event.clientY;
+        drag.current = { touch, start: at, last: at, moved: false, id: event.pointerId };
       }}
       onPointerMove={(event) => {
         if (!drag.current) return;
+        const at = drag.current.touch ? event.clientX : event.clientY;
         if (!drag.current.moved) {
           // Ignore tiny jitters: a plain click/tap must never trigger the
           // wheel's drag mode, or it would swallow the click meant for the
           // project link underneath.
-          if (Math.abs(event.clientY - drag.current.startY) < 4) return;
+          if (Math.abs(at - drag.current.start) < 4) return;
           drag.current.moved = true;
           event.currentTarget.setPointerCapture(drag.current.id);
         }
-        to(target.current + (drag.current.lastY - event.clientY) / DRAG_UNITS);
-        drag.current.lastY = event.clientY;
+        to(target.current + (drag.current.last - at) / DRAG_UNITS);
+        drag.current.last = at;
       }}
       onPointerUp={() => {
         if (drag.current?.moved && target.current > 1) to(Math.round(target.current));
         drag.current = null;
       }}
+      onPointerCancel={() => { drag.current = null; }}
       onKeyDown={(event) => {
-        if (event.key === "ArrowDown") to(Math.round(target.current) + 1);
-        else if (event.key === "ArrowUp") to(Math.round(target.current) - 1);
+        if (event.key === "ArrowDown" || event.key === "ArrowRight") to(Math.round(target.current) + 1);
+        else if (event.key === "ArrowUp" || event.key === "ArrowLeft") to(Math.round(target.current) - 1);
         else return;
         event.preventDefault();
       }}
