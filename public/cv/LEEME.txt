@@ -1,0 +1,7 @@
+PON AQUÍ TU CV
+
+Guarda tu CV en PDF con este nombre exacto:
+  public/cv/Jorge-Azcona-Gomez-CV.pdf
+
+Los botones "Descargar CV" de la web (inicio y contacto) apuntan a esa ruta.
+Si prefieres otro nombre, cambia la constante CV_PATH al principio de app/page.js.
