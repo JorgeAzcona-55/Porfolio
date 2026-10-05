@@ -75,6 +75,12 @@ export default function WorksWheel({ items, label = "Mis proyectos", action = "A
     return { cardW, cardH, ringR, ringScale, drumR, bow: cardH * BOW, depth: cardH * LENS, title: cardH * TITLE, index: cardH * INDEX };
   }, [stage, count, cardMaxW]);
 
+  // El título activo vive en el hueco a la izquierda de la tarjeta, para no
+  // taparla: se ajusta su ancho y tamaño a ese hueco y se parte en líneas.
+  const gutter = Math.max((stage.w - metrics.cardW) / 2, 0);
+  const gutterX = gutter * 0.08;
+  const gutterW = Math.max(gutter * 0.84, 60);
+
   React.useEffect(() => {
     if (!stage.h) return;
     let frame = 0;
@@ -172,13 +178,12 @@ export default function WorksWheel({ items, label = "Mis proyectos", action = "A
               <span className="works-wheel-overlay" />
               <span className="works-wheel-project">PROJECT / {String(i + 1).padStart(2, "0")}</span>
               <span className="works-wheel-open">↗ {action}</span>
-              <span className="works-wheel-title">{item.title}</span>
             </span>
           </a>
         ))}
       </div>
       <div ref={labelRef} className="works-wheel-label" style={{ fontSize: metrics.title }}>{label}</div>
-      <div ref={titleRef} className="works-wheel-active-title" style={{ fontSize: metrics.title }}>{items[active]?.title}</div>
+      <div ref={titleRef} className="works-wheel-active-title" style={{ fontSize: Math.min(metrics.title, gutterW / 6.8), "--title-w": `${gutterW}px`, "--title-x": `${gutterX}px` }}>{items[active]?.title}</div>
       <ol className="works-wheel-index" style={{ fontSize: metrics.index }}>
         {items.map((item, i) => <li key={item.title}><button type="button" onClick={() => to(i)} className={i === active ? "active" : ""}>{String(i + 1).padStart(2, "0")} · {item.title}</button></li>)}
       </ol>

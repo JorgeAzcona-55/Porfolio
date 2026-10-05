@@ -42,6 +42,20 @@ const projects = [
     linkLabel: "Ver el código",
     image: "/proyectos/gamehub.png",
   },
+  {
+    title: "Gestoría Catering",
+    kind: "Proyecto web · En producción",
+    text: "Web para una gestoría de eventos y catering de Zaragoza. Presenta su propuesta y sus servicios para bodas, celebraciones privadas y encuentros de empresa, e invita a los visitantes a pedir presupuesto.",
+    points: [
+      "Diseño cuidado, pensado para transmitir confianza",
+      "Presentación de servicios y propuesta de valor",
+      "Llamada a la acción para solicitar presupuesto",
+    ],
+    tech: ["Next.js", "Vercel"],
+    link: "https://gestoria-catering-oh9o.vercel.app/",
+    linkLabel: "Visitar la web",
+    image: "/proyectos/gestoria-catering.png",
+  },
 ];
 
 export default function Home() {
